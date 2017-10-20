@@ -121,7 +121,7 @@ char * toStringPCB(/* in */ PCB the_pcb, int showAll) {
     unsigned int cpos = 0;
 
 	if (showAll) {
-		cpos += sprintf(temp_buf, "contents: PID: 0x%X, Priority: 0x%X, state: %u, "
+		cpos += sprintf(temp_buf, "contents: PID: %d, Priority: %d, state: %u, "
 				"memloc: %p size: %u channel: %X ",
 				the_pcb->pid, the_pcb->priority, the_pcb->state,
 				the_pcb->mem, the_pcb->size, the_pcb->channel_no);
@@ -135,7 +135,7 @@ char * toStringPCB(/* in */ PCB the_pcb, int showAll) {
 				the_pcb->context->r4, the_pcb->context->r5, the_pcb->context->r6,
 				the_pcb->context->r7);
 	} else {
-		cpos += sprintf(temp_buf, "contents: PID: 0x%X, Priority: %d, state: %u, "
+		cpos += sprintf(temp_buf, "contents: PID: %d, Priority: %d, state: %u, "
 				"memloc: %p ", the_pcb->pid, the_pcb->priority, the_pcb->state, the_pcb->mem);
 
 		/* Append the context: */

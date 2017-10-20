@@ -69,6 +69,8 @@ void dispatcher (Scheduler);
 
 void pseudoIRET (Scheduler);
 
+void printSchedulerState (Scheduler);
+
 Scheduler schedulerConstructor ();
 
 void schedulerDeconstructor (Scheduler);

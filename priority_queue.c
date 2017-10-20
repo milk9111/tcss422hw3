@@ -124,9 +124,7 @@ char pq_is_empty(PriorityQueue PQ) {
 	if (!pq_is_empty(PQ)) {
 		while (i < NUM_PRIORITIES) {
 			if (!q_is_empty(PQ->queues[i])) {
-						printf("in here\n");
-
-				pcb = PQ->queues[i]->first_node;
+				pcb = q_peek(PQ->queues[i]);
 				break;
 			} else {
 				i++;
