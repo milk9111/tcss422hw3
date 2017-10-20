@@ -156,6 +156,8 @@ void printSchedulerState (Scheduler theScheduler) {
 		free(interruptedState);
 	}
 	printf("\r\n");
+	
+	
 	if (pq_peek(theScheduler->ready)) {
 		char *toRun = toStringPCB(pq_peek(theScheduler->ready), 0);
 		printf("Next highest priority PCB %s\r\n", toRun);
