@@ -63,12 +63,14 @@ void timer () {
 int makePCBList (Scheduler theScheduler) {
 	int newPCBCount = rand() % MAX_PCB_IN_ROUND;
 	
+	int lottery = rand() % 5;
+	
 	for (int i = 0; i < newPCBCount; i++) {
 		PCB newPCB = PCB_create();
 		newPCB->state = STATE_NEW;
-
+		
 		// creates privileged pcb
-		if (privilege_counter < 4) {
+		if (privilege_counter < 4 && lottery == 1) {
 			privileged[privilege_counter++] = newPCB;
 		}
 		
