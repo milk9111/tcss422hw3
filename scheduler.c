@@ -62,11 +62,11 @@ int makePCBList (Scheduler theScheduler) {
 			char *nextPCBState = toStringPCB(nextPCB, 0);
 			printf("%s\r\n", nextPCBState);
 			free(nextPCBState);
-			q_enqueue(theScheduler->ready, nextPCB);
+			pq_enqueue(theScheduler->ready, nextPCB);
 		}
 		printf("\r\n");
 		if (theScheduler->isNew) {
-			theScheduler->running = q_dequeue(theScheduler->ready);
+			theScheduler->running = pq_dequeue(theScheduler->ready);
 			theScheduler->running->state = STATE_RUNNING;
 			theScheduler->isNew = 0;
 		}
@@ -111,7 +111,7 @@ void pseudoISR (Scheduler theScheduler) {
 void scheduling (int isTimer, Scheduler theScheduler) {
 	if (isTimer) {
 		theScheduler->interrupted->state = STATE_READY;
-		q_enqueue(theScheduler->ready, theScheduler->interrupted);
+		pq_enqueue(theScheduler->ready, theScheduler->interrupted);
 	}
 	if (switchCalls != (SWITCH_CALLS - 1)) {
 		switchCalls++;
@@ -123,7 +123,7 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 		printf("%s\r\n", runningPCBState);
 		free(runningPCBState);
 		printf("Switching to:\r\n");
-		char *nextPCBState = toStringPCB(q_peek(theScheduler->ready), 0);
+		char *nextPCBState = toStringPCB(pq_peek(theScheduler->ready), 0);
 		printf("%s\r\n\r\n", nextPCBState);
 		free(nextPCBState);
 	}
@@ -138,7 +138,7 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 		char *interruptedPCBState = toStringPCB(theScheduler->interrupted, 0);
 		printf("%s\r\n\r\n", interruptedPCBState);
 		free(interruptedPCBState);
-		char *queueState = toStringReadyQueue(theScheduler->ready, 0);
+		char *queueState = toStringPriorityQueue(theScheduler->ready, 0);
 		printf("%s\r\n\r\n", queueState);
 		free(queueState);
 		switchCalls = 0;
@@ -151,7 +151,7 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 	running state of the Scheduler.
 */
 void dispatcher (Scheduler theScheduler) {
-	theScheduler->running = q_dequeue(theScheduler->ready);
+	theScheduler->running = pq_dequeue(theScheduler->ready);
 	theScheduler->running->state = STATE_RUNNING;
 }
 
@@ -173,7 +173,7 @@ Scheduler schedulerConstructor () {
 	newScheduler->created = q_create();
 	newScheduler->killed = q_create();
 	newScheduler->blocked = q_create();
-	newScheduler->ready = q_create();
+	newScheduler->ready = pq_create();
 	newScheduler->running = PCB_create();
 	newScheduler->interrupted = PCB_create();
 	newScheduler->isNew = 1;
@@ -192,7 +192,7 @@ void schedulerDeconstructor (Scheduler theScheduler) {
 	q_destroy(theScheduler->created);
 	q_destroy(theScheduler->killed);
 	q_destroy(theScheduler->blocked);
-	q_destroy(theScheduler->ready);
+	pq_destroy(theScheduler->ready);
 	PCB_destroy(theScheduler->running);
 	if (theScheduler->interrupted == theScheduler->running) {
 		PCB_destroy(theScheduler->interrupted);

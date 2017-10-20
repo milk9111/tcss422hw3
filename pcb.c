@@ -17,7 +17,7 @@ int global_largest_PID = 0;
  */
 void initialize_data(/* in-out */ PCB pcb) {
   pcb->pid = 0;
-  pcb->priority = 0;
+  PCB_assign_priority(pcb, (rand() % NUM_PRIORITIES));
   pcb->size = 0;
   pcb->channel_no = 0;
   pcb->state = 0;
@@ -135,8 +135,8 @@ char * toStringPCB(/* in */ PCB the_pcb, int showAll) {
 				the_pcb->context->r4, the_pcb->context->r5, the_pcb->context->r6,
 				the_pcb->context->r7);
 	} else {
-		cpos += sprintf(temp_buf, "contents: PID: 0x%X, state: %u, "
-				"memloc: %p ", the_pcb->pid, the_pcb->state, the_pcb->mem);
+		cpos += sprintf(temp_buf, "contents: PID: 0x%X, Priority: %d, state: %u, "
+				"memloc: %p ", the_pcb->pid, the_pcb->priority, the_pcb->state, the_pcb->mem);
 
 		/* Append the context: */
 		sprintf(temp_buf + cpos, "PC: 0x%04X", the_pcb->context->pc);

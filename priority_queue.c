@@ -110,13 +110,40 @@ char pq_is_empty(PriorityQueue PQ) {
     return ret_val;
 }
 
+
+/*
+ * Peeks at the top value from the provided priority queue.
+ *
+ * Arguments: PQ: The Priority Queue to peek at.
+ * Return: The highest priority proccess in the queue, NULL if none exists.
+ */
+ PCB pq_peek(PriorityQueue PQ) {
+	PCB pcb = NULL;
+	int i = 0;
+	
+	if (!pq_is_empty(PQ)) {
+		while (i < NUM_PRIORITIES) {
+			if (!q_is_empty(PQ->queues[i])) {
+						printf("in here\n");
+
+				pcb = PQ->queues[i]->first_node;
+				break;
+			} else {
+				i++;
+			}
+		}
+	}
+	return pcb;
+}
+ 
+
 /*
  * Creates a string representation of the provided priority queue, and returns it.
  *
  * Arguments: PQ: the Priority Queue to create a string representation of.
  * Return: A string representation of the provided Priority Queue, or NULL on failure.
  */
-char * toStringPriorityQueue(PriorityQueue PQ) {
+char * toStringPriorityQueue(PriorityQueue PQ, int display_back) {
     unsigned int buff_len = 1000;
     unsigned int cpos = 0;
     unsigned int q_str_len = 0;
@@ -127,7 +154,7 @@ char * toStringPriorityQueue(PriorityQueue PQ) {
 
     if (ret_str != NULL) {
         for (i = 0; i < NUM_PRIORITIES; i++) {
-            q_str = toStringReadyQueue(PQ->queues[i], 0);
+            q_str = toStringReadyQueue(PQ->queues[i], display_back);
             if (q_str != NULL) {
                 q_str_len = strlen(q_str);
                 str_resize = resize_block_if_needed(ret_str, cpos + q_str_len
