@@ -13,8 +13,17 @@
 
 #include "scheduler.h"
 
+#define MAX_VALUE_PRIVILEGED 15
+#define RANDOM_VALUE 101
+#define TOTAL_TERMINATED 10
+
 unsigned int sysstack;
 int switchCalls;
+
+PCB privileged[4];
+int privilege_counter = 0;
+int ran_term_num = 0;
+int terminated = 0;
 
 /*
 	This function is our main loop. It creates a Scheduler object and follows the
@@ -107,6 +116,15 @@ unsigned int runProcess (unsigned int pc) {
 	return pc;
 }
 
+void terminate(Scheduler theScheduler) {
+	ran_term_num = rand() % RANDOM_VALUE;
+	
+	if (theScheduler->running != NULL && ran_term_num <= MAX_VALUE_PRIVILEGED
+	&& isPrivileged(theScheduler->running) == 0) {
+		theScheduler->running->state = STATE_HALT;
+	}
+}
+
 
 /*
 	This acts as an Interrupt Service Routine, but only for the Timer interrupt.
@@ -171,6 +189,20 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 		//exit(0);
 	}
 	
+	if (theScheduler->running->state == STATE_HALT) {
+		q_enqueue(theScheduler->killed, theScheduler->running);
+		theScheduler->running = NULL;
+		
+		terminated++;
+	}
+
+	
+	if (terminated >= TOTAL_TERMINATED) {
+		while(!q_is_empty(theScheduler->killed)) {
+			PCB_destroy(q_dequeue(theScheduler->killed));
+		}
+	}
+	
 	dispatcher(theScheduler);
 }
 
@@ -230,6 +262,18 @@ void schedulerDeconstructor (Scheduler theScheduler) {
 		PCB_destroy(theScheduler->interrupted);
 	}
 	free (theScheduler);
+}
+
+int isPrivileged(PCB pcb) {
+	if (pcb != NULL) {
+		for (int i = 0; i < 4; i++) {
+			if (privileged[i] == pcb) {
+				return 1;
+			}	
+		}
+	}
+	
+	return 0;	
 }
 
 
