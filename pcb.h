@@ -104,6 +104,8 @@ void PCB_assign_priority(/* in */ PCB pcb, /* in */ unsigned int priority);
  * Arguments: pcb: the pcb to create a string representation of.
  * Return: a string representation of the provided PCB on success, NULL otherwise.
  */
-char * toStringPCB(/* in */ PCB pcb, int showAll);
+void toStringPCB(/* in */ PCB pcb, int showCpu);
+
+void toStringCPUContext(CPU_context_p context);
 
 #endif

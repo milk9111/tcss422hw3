@@ -34,25 +34,25 @@ int terminated = 0;
 */
 void timer () {
 	unsigned int pc = 0;
-	int totalProcesses = 0, firstRun = 1, count = 0, stop = 2;
+	int totalProcesses = 0, iterationCount = 1;
 	Scheduler thisScheduler = schedulerConstructor();
 	for (;;) {
 		if (totalProcesses >= MAX_PCB_TOTAL) {
 			printf("Reached max PCBs, ending Scheduler.\r\n");
 			break;
 		}
-		printf("Beginning of loop\n");
+		printf("Iteration: %d\r\n", iterationCount);
 		totalProcesses += makePCBList(thisScheduler);		
-		pc = runProcess(pc);
-		sysstack = pc;
-		//printf("systack: 0x%04X\r\n", sysstack);
+		
 		if (totalProcesses > 1) {
+			pc = runProcess(pc, thisScheduler->running->priority);
+			sysstack = pc;
 			pseudoISR(thisScheduler);
 			pc = thisScheduler->running->context->pc;
 		}
 		
-		printf("MLFQ state at loop end\n");
 		printSchedulerState(thisScheduler);
+		iterationCount++;
 		/*if (count == stop) {
 			break;
 		} else {
@@ -82,17 +82,16 @@ int makePCBList (Scheduler theScheduler) {
 		while (!q_is_empty(theScheduler->created)) {
 			PCB nextPCB = q_dequeue(theScheduler->created);
 			nextPCB->state = STATE_READY;
-			char *nextPCBState = toStringPCB(nextPCB, 0);
-			printf("%s\r\n", nextPCBState);
-			free(nextPCBState);
+			toStringPCB(nextPCB, 0);
+			printf("\r\n");
 			pq_enqueue(theScheduler->ready, nextPCB);
 		}
 		printf("\r\n");
 
 		if (theScheduler->isNew) {
-			char *toRun = toStringPCB(pq_peek(theScheduler->ready), 0);
-			printf("Dequeueing PCB %s\r\n\r\n", toRun);
-			free(toRun);
+			printf("Dequeueing PCB ");
+			toStringPCB(pq_peek(theScheduler->ready), 0);
+			printf("\r\n\r\n");
 			theScheduler->running = pq_dequeue(theScheduler->ready);
 			theScheduler->running->state = STATE_RUNNING;
 			theScheduler->isNew = 0;
@@ -108,11 +107,11 @@ int makePCBList (Scheduler theScheduler) {
 	It then returns that new PC value.
 */
 unsigned int runProcess (unsigned int pc, int priority) {
-	//printf ("last PC: 0x%04X\r\n", pc);
+	//(priority * PRIORITY_JUMP_EXTRA is the difference in time slice length between
+	//priority levels.
 	unsigned int jump = rand() % MAX_PC_JUMP + (priority * PRIORITY_JUMP_EXTRA);
 	if (jump < MIN_PC_JUMP) jump += ((MIN_PC_JUMP - jump) + (rand() % PC_JUMP_LIMIT));
 	pc += jump;
-	//printf ("new PC: 0x%04X\r\n", pc);
 	return pc;
 }
 
@@ -143,32 +142,33 @@ void pseudoISR (Scheduler theScheduler) {
 }
 
 
+/*
+	Prints the state of the Scheduler. Mostly this consists of the MLFQ, the next
+	highest priority PCB in line, the one that will be run on next iteration, and
+	the current list of "privileged PCBs" that will not be terminated.
+*/
 void printSchedulerState (Scheduler theScheduler) {
-	char *queueState = toStringPriorityQueue(theScheduler->ready, 0);
-	printf("%s", queueState);
-	free(queueState);
-	if (theScheduler->running && theScheduler->interrupted) {
-		char *runningState = toStringPCB(theScheduler->running, 0);
-		char *interruptedState = toStringPCB(theScheduler->interrupted, 0);
-		/*printf("Running %s\r\n", runningState);
-		printf("Interrupted %s\r\n", interruptedState);*/
-		free(runningState);
-		free(interruptedState);
-	}
+	printf("MLFQ state at iteration end\n");
+	toStringPriorityQueue(theScheduler->ready);
+
+	/*if (theScheduler->running && theScheduler->interrupted) {
+		toStringPCB(theScheduler->running, 0);
+		toStringPCB(theScheduler->interrupted, 0);
+	}*/
 	printf("\r\n");
 	
-	
 	if (pq_peek(theScheduler->ready)) {
-		char *toRun = toStringPCB(pq_peek(theScheduler->ready), 0);
-		printf("Next highest priority PCB %s\r\n", toRun);
-		free(toRun);
+		printf("Next highest priority PCB ");
+		toStringPCB(pq_peek(theScheduler->ready), 0);
+		printf("\r\n");
+		printf("Going to be running next: ");
+		toStringPCB(theScheduler->running, 0);
+		printf("\r\n\r\n\r\n");
 	} else {
-		printf("Next highest priority PCB contents: The MLFQ is empty!\r\n");
+		printf("Next highest priority PCB contents: The MLFQ is empty!\r\n\r\n\r\n");
 	}
 	
-	char *running = toStringPCB(theScheduler->running, 0);
-	printf("Going to be running next: %s\r\n\r\n\r\n", running);
-	free(running);
+	
 }
 
 

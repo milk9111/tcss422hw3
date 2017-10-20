@@ -133,10 +133,29 @@ PCB q_dequeue(/* in-out */ ReadyQueue FIFOq) {
  *
  * Arguments: FIFOq: The queue to perform this operation on
  *            display_back: 1 to display the final PCB, 0 otherwise.
- * Return: a string of the contents of this FIFO queue. User is responsible for
- * freeing consumed memory.
  */
-char * toStringReadyQueue(/* in */ ReadyQueue FIFOq, /* in */ char display_back) {
+ void toStringReadyQueueNode(ReadyQueueNode theNode) {
+	printf("P%d",theNode->pcb->pid);
+    if(theNode->next != 0) {
+        printf("->");
+    } else {
+        printf("->*");
+    }
+}
+
+void toStringReadyQueue(ReadyQueue theQueue) {
+    if(theQueue->first_node == 0) {
+        printf("\r\n");
+    } else {
+        ReadyQueueNode temp = theQueue->first_node;
+        while(temp != 0) {
+            toStringReadyQueueNode(temp);
+            temp = temp->next;
+        }
+		printf("\r\n");
+    }
+}
+/*char * toStringReadyQueue(/* in  ReadyQueue FIFOq, /* in *char display_back) {
     ReadyQueueNode iter = FIFOq->first_node;
 
     unsigned int buff_len = 1000;
@@ -145,17 +164,17 @@ char * toStringReadyQueue(/* in */ ReadyQueue FIFOq, /* in */ char display_back)
     char * ret_str = malloc(sizeof(char) * buff_len);
     char * str_resize = NULL;
 
-    /* Check if we successfully malloc'd */
+    /* Check if we successfully malloc'd 
     if (ret_str != NULL) {
-        /* Initial size is 1000, this should be safe: */
+        /* Initial size is 1000, this should be safe: 
         cpos += sprintf(ret_str, "Q:Count=%u: ", FIFOq->size);
 
-        /* While we have nodes to iterate through: */
+        /* While we have nodes to iterate through: 
         while (iter != NULL) {
-            /* Make sure we have enough capacity to sprintf. */
+            /* Make sure we have enough capacity to sprintf. 
             str_resize = resize_block_if_needed(ret_str, cpos + PROCESS_QUEUE_DISPLAY_LENGTH, &buff_len);
             if (str_resize != NULL) {
-                /* If it succeeded, we need to shift to the (possibly same) pointer location. */
+                /* If it succeeded, we need to shift to the (possibly same) pointer location. 
                 ret_str = str_resize;
                 cpos += sprintf(ret_str + cpos, "P%u-", iter->pcb->pid);
                 if (iter->next != NULL) {
@@ -164,15 +183,15 @@ char * toStringReadyQueue(/* in */ ReadyQueue FIFOq, /* in */ char display_back)
                     cpos += sprintf(ret_str + cpos, "*");
                 }
             } else {
-                /* If it failed, might as well end the loop. */
+                /* If it failed, might as well end the loop. 
                 break;
             }
             iter = iter->next;
         }
 
-        /* Write the last PCB to our string: */
+        /* Write the last PCB to our string: 
         if (FIFOq->last_node != NULL && display_back == 1) {
-            /* There is enough space in PROCESS_QUEUE_DISPLAY_LENGTH to allow for this addition without any additional change */
+             There is enough space in PROCESS_QUEUE_DISPLAY_LENGTH to allow for this addition without any additional change 
             cpos += sprintf(ret_str + cpos, " : ");
             char * PCB_string = toStringPCB(FIFOq->last_node->pcb, 1);
 
@@ -187,9 +206,9 @@ char * toStringReadyQueue(/* in */ ReadyQueue FIFOq, /* in */ char display_back)
             }
         }
     }
-    /* Finally, return the string: */
+    /* Finally, return the string: 
     return ret_str;
-}
+}*/
 
 /*
  * Helper function that resizes a malloced block of memory if the requested

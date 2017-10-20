@@ -139,9 +139,17 @@ char pq_is_empty(PriorityQueue PQ) {
  * Creates a string representation of the provided priority queue, and returns it.
  *
  * Arguments: PQ: the Priority Queue to create a string representation of.
- * Return: A string representation of the provided Priority Queue, or NULL on failure.
  */
-char * toStringPriorityQueue(PriorityQueue PQ, int display_back) {
+ void toStringPriorityQueue(PriorityQueue PQ) {
+	printf("\r\n");
+	for (int i = 0; i < NUM_PRIORITIES; i++) {
+		printf("%2d: Count=%d: ", i, PQ->queues[i]->size);
+		toStringReadyQueue(PQ->queues[i]);
+	}
+	printf("\r\n");
+ }
+ 
+/*char * toStringPriorityQueue(PriorityQueue PQ, int display_back) {
     unsigned int buff_len = 1000;
     unsigned int cpos = 0;
     unsigned int q_str_len = 0;
@@ -167,4 +175,4 @@ char * toStringPriorityQueue(PriorityQueue PQ, int display_back) {
     }
 
     return ret_str;
-}
+}*/

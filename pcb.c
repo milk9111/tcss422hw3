@@ -115,8 +115,59 @@ void PCB_assign_priority(/* in */ PCB the_pcb, /* in */ unsigned int the_priorit
  * Arguments: pcb: the pcb to create a string representation of.
  * Return: a string representation of the provided PCB on success, NULL otherwise.
  */
-char * toStringPCB(/* in */ PCB the_pcb, int showAll) {
-    /* Oversized buffer for creating the initial version of the string. */
+void toStringPCB(PCB thisPCB, int showCpu) {
+	printf("contents: ");
+	printf("PID: %d, ", thisPCB->pid);
+	switch(thisPCB->state) {
+		case STATE_NEW:
+			printf("state: new, ");
+			break;
+		case STATE_READY:
+			printf("state: ready, ");
+			break;
+		case STATE_RUNNING:
+			printf("state: running, ");
+			break;
+		case STATE_INT:
+			printf("state: interrupted, ");
+			break;
+		case STATE_WAIT:
+			printf("state: waiting, ");
+			break;
+		case STATE_HALT:
+			printf("state: halted, ");
+			break;
+	}
+	
+	printf("priority: %d, ", thisPCB->priority);
+	printf("mem: 0x%04X, ", thisPCB->mem);
+	
+	if (showCpu) {
+		printf("parent: %d, ", thisPCB->parent);
+		printf("size: %d, ", thisPCB->size);
+		printf("channel_no: %d ", thisPCB->channel_no);
+		toStringCPUContext(thisPCB->context);
+	}
+}
+
+
+void toStringCPUContext(CPU_context_p context) {
+	printf(" CPU context values: ");
+	printf("pc:  %d, ", context->pc);
+	printf("ir:  %d, ", context->ir);
+	printf("psr: %d, ", context->psr);
+	printf("r0:  %d, ", context->r0);
+	printf("r1:  %d, ", context->r1);
+	printf("r2:  %d, ", context->r2);
+	printf("r3:  %d, ", context->r3);
+	printf("r4:  %d, ", context->r4);
+	printf("r5:  %d, ", context->r5);
+	printf("r6:  %d, ", context->r6);
+	printf("r7:  %d\r\n", context->r7);
+}
+ 
+/*char * toStringPCB(/* in  PCB the_pcb, int showAll) {
+    /* Oversized buffer for creating the initial version of the string. 
     char temp_buf[1000];
     unsigned int cpos = 0;
 
@@ -126,7 +177,7 @@ char * toStringPCB(/* in */ PCB the_pcb, int showAll) {
 				the_pcb->pid, the_pcb->priority, the_pcb->state,
 				the_pcb->mem, the_pcb->size, the_pcb->channel_no);
 
-		/* Append the context: */
+		/* Append the context: 
 		sprintf(temp_buf + cpos, "PC: 0x%04X, IR: %04X, "
 				"r0: %04X, r1: %04X, r2: %04X, r3: %04X, r4: %04X, "
 				"r5: %04X, r6: %04X, r7: %04X",
@@ -138,17 +189,17 @@ char * toStringPCB(/* in */ PCB the_pcb, int showAll) {
 		cpos += sprintf(temp_buf, "contents: PID: %d, Priority: %d, state: %u, "
 				"memloc: %p ", the_pcb->pid, the_pcb->priority, the_pcb->state, the_pcb->mem);
 
-		/* Append the context: */
+		/* Append the context: 
 		sprintf(temp_buf + cpos, "PC: 0x%04X", the_pcb->context->pc);
 	}
 	
-    /* A string that can be returned and -not- go out of scope. */
+    /* A string that can be returned and -not- go out of scope. 
     char * ret_val = malloc(sizeof(char) * (strlen(temp_buf) + 1));
 
-    /* Make sure ret_val is not null before populating it. */
+    /* Make sure ret_val is not null before populating it. 
     if (ret_val != NULL) {
         strcpy(ret_val, temp_buf);
     }
 
     return ret_val;
-}
+}*/

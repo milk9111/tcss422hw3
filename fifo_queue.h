@@ -84,7 +84,9 @@ PCB q_peek(ReadyQueue FIFOq);
  * Return: a string of the contents of this FIFO queue. User is responsible for
  * freeing consumed memory.
  */
-char * toStringReadyQueue(/* in */ ReadyQueue FIFOq, /* in */ char display_back);
+void toStringReadyQueue(/* in */ ReadyQueue FIFOq);
+
+void toStringReadyQueueNode(ReadyQueueNode theNode);
 
 /*
  * Helper function that resizes a malloced block of memory if the requested

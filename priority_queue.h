@@ -70,6 +70,6 @@ char pq_is_empty(PriorityQueue PQ);
  * Arguments: PQ: the Priority Queue to create a string representation of.
  * Return: A string representation of the provided Priority Queue, or NULL on failure.
  */
-char * toStringPriorityQueue(PriorityQueue PQ, int display_back);
+void toStringPriorityQueue(PriorityQueue PQ);
 
 #endif
