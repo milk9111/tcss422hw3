@@ -98,9 +98,9 @@ int makePCBList (Scheduler theScheduler) {
 	Creates a random number between 3000 and 4000 and adds it to the current PC.
 	It then returns that new PC value.
 */
-unsigned int runProcess (unsigned int pc) {
+unsigned int runProcess (unsigned int pc, int priority) {
 	//printf ("last PC: 0x%04X\r\n", pc);
-	unsigned int jump = rand() % MAX_PC_JUMP;
+	unsigned int jump = rand() % MAX_PC_JUMP + (priority * PRIORITY_JUMP_EXTRA);
 	if (jump < MIN_PC_JUMP) jump += ((MIN_PC_JUMP - jump) + (rand() % PC_JUMP_LIMIT));
 	pc += jump;
 	//printf ("new PC: 0x%04X\r\n", pc);
