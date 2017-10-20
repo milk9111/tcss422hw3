@@ -13,11 +13,15 @@
 
 #include "scheduler.h"
 
+#define MAX_VALUE_PRIVILEGED 15
+#define RANDOM_VALUE 101
+#define TOTAL_TERMINATED 10
+
 unsigned int sysstack;
 int switchCalls;
 
 PCB privileged[4];
-unsigned int privilege_counter = 0;
+int privilege_counter = 0;
 int ran_term_num = 0;
 int terminated = 0;
 
@@ -45,9 +49,7 @@ void timer () {
 		terminate(thisScheduler);
 		pseudoISR(thisScheduler);
 		pc = thisScheduler->running->context->pc;
-		
-
-		
+			
 	}
 	schedulerDeconstructor(thisScheduler);
 }
@@ -60,9 +62,11 @@ void timer () {
 */
 int makePCBList (Scheduler theScheduler) {
 	int newPCBCount = rand() % MAX_PCB_IN_ROUND;
+	
 	for (int i = 0; i < newPCBCount; i++) {
 		PCB newPCB = PCB_create();
 		newPCB->state = STATE_NEW;
+
 		// creates privileged pcb
 		if (privilege_counter < 4) {
 			privileged[privilege_counter++] = newPCB;
@@ -105,10 +109,10 @@ unsigned int runProcess (unsigned int pc) {
 }
 
 void terminate(Scheduler theScheduler) {
-
-	ran_term_num = rand() % 100 + 1;
-	// check for privileged
-	if (theScheduler->running != NULL && ran_term_num <= 15 && isPrivileged(theScheduler->running) == 0) {
+	ran_term_num = rand() % RANDOM_VALUE;
+	
+	if (theScheduler->running != NULL && ran_term_num <= MAX_VALUE_PRIVILEGED
+	&& isPrivileged(theScheduler->running) == 0) {
 		theScheduler->running->state = STATE_HALT;
 	}
 }
@@ -134,6 +138,10 @@ void pseudoISR (Scheduler theScheduler) {
 	calls the dispatcher to get the next PCB in the queue.
 */
 void scheduling (int isTimer, Scheduler theScheduler) {
+	
+	// TODO: randomly generate PIDs, if a PID reaches that value, assign it
+	// as a privileged PCB.
+	
 	if (isTimer) {
 		theScheduler->interrupted->state = STATE_READY;
 		q_enqueue(theScheduler->ready, theScheduler->interrupted);
@@ -142,11 +150,12 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 	if (theScheduler->running->state == STATE_HALT) {
 		q_enqueue(theScheduler->killed, theScheduler->running);
 		theScheduler->running = NULL;
+		
 		terminated++;
 	}
 
 	
-	if (terminated >= 10) {
+	if (terminated >= TOTAL_TERMINATED) {
 		while(!q_is_empty(theScheduler->killed)) {
 			PCB_destroy(q_dequeue(theScheduler->killed));
 		}
@@ -239,6 +248,9 @@ void schedulerDeconstructor (Scheduler theScheduler) {
 	free (theScheduler);
 }
 
+/*
+	This determines if this is a privileged PCB, which must not be terminated.
+*/
 int isPrivileged(PCB pcb) {
 	if (pcb != NULL) {
 		for (int i = 0; i < 4; i++) {

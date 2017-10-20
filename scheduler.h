@@ -15,7 +15,7 @@
 #define SCHEDULER_H
 
 //includes
-#include "priority_queue.h"
+#include "fifo_queue.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,7 +45,7 @@ typedef struct scheduler {
 	ReadyQueue created;
 	ReadyQueue killed;
 	ReadyQueue blocked;
-	PriorityQueue ready;
+	ReadyQueue ready;
 	PCB running;
 	PCB interrupted;
 	int isNew;

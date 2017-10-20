@@ -126,7 +126,7 @@ char pq_is_empty(PriorityQueue PQ) {
 			if (!q_is_empty(PQ->queues[i])) {
 						printf("in here\n");
 
-				pcb = PQ->queues[i]->first_node;
+				// pcb = PQ->queues[i]->first_node;
 				break;
 			} else {
 				i++;

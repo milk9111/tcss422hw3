@@ -49,14 +49,6 @@ void pq_enqueue(PriorityQueue PQ, PCB pcb);
 PCB pq_dequeue(PriorityQueue PQ);
 
 /*
- * Peeks at the top value from the provided priority queue.
- *
- * Arguments: PQ: The Priority Queue to peek at.
- * Return: The highest priority proccess in the queue, NULL if none exists.
- */
- PCB pq_peek(PriorityQueue PQ);
-
-/*
  * Checks if the provided priority queue is empty.
  *
  * Arguments: PQ: The Priority Queue to test.
