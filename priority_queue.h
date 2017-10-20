@@ -48,6 +48,8 @@ void pq_enqueue(PriorityQueue PQ, PCB pcb);
  */
 PCB pq_dequeue(PriorityQueue PQ);
 
+int getNextQuantumSize (PriorityQueue PQ);
+
 /*
  * Peeks at the top value from the provided priority queue.
  *

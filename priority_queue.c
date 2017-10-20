@@ -12,6 +12,8 @@
 #include "priority_queue.h"
 
 #define ADDITIONAL_ROOM_FOR_TOSTR 4
+#define PRIORITY_JUMP_EXTRA 1000
+#define MIN_PRIORITY_JUMP 100
 
 /*
  * Creates a priority queue.
@@ -29,6 +31,11 @@ PriorityQueue pq_create() {
                 failed = i;
                 break;
             }
+			if (!i) {
+				setQuantumSize(new_pq->queues[i], MIN_PRIORITY_JUMP);
+			} else {
+				setQuantumSize(new_pq->queues[i], i * PRIORITY_JUMP_EXTRA);
+			}
         }
         /* If failed is non-zero, we need to free up everything else. */
         for (i = 0; i <= failed; i++) {
@@ -42,6 +49,19 @@ PriorityQueue pq_create() {
     }
 
     return new_pq;
+}
+
+
+int getNextQuantumSize (PriorityQueue PQ) {
+	int qSize = 0;
+	for (int i = 0; i < NUM_PRIORITIES; i++) {
+		ReadyQueue curr = PQ->queues[i];
+		if (!q_is_empty(curr)) {
+			qSize = curr->quantum_size;
+			break;
+		}
+	}
+	return qSize;
 }
 
 /*
@@ -143,7 +163,7 @@ char pq_is_empty(PriorityQueue PQ) {
  void toStringPriorityQueue(PriorityQueue PQ) {
 	printf("\r\n");
 	for (int i = 0; i < NUM_PRIORITIES; i++) {
-		printf("%2d: Count=%d: ", i, PQ->queues[i]->size);
+		printf("Q%2d: Count=%d: ", i, PQ->queues[i]->size);
 		toStringReadyQueue(PQ->queues[i]);
 	}
 	printf("\r\n");

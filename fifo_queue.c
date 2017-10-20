@@ -15,6 +15,8 @@
 #define PROCESS_QUEUE_DISPLAY_LENGTH 20
 #define POST_OUTPUT_BUFFER 5
 
+
+
 /*
  * Create a new FIFO Queue.
  *
@@ -26,6 +28,7 @@ ReadyQueue q_create() {
     if (new_queue != NULL) {
         new_queue->first_node = NULL;
         new_queue->last_node = NULL;
+		new_queue->quantum_size = 0;
         new_queue->size = 0;
     }
 
@@ -50,6 +53,12 @@ void q_destroy(/* in-out */ ReadyQueue FIFOq) {
     }
     free(FIFOq);
 }
+
+
+void setQuantumSize (ReadyQueue queue, int quantumSize) {
+	queue->quantum_size = quantumSize;
+}
+
 
 /*
  * Peeks and returns a PCB from the queue, unless the queue is empty in which case null is returned.
@@ -87,8 +96,9 @@ int q_enqueue(/* in */ ReadyQueue FIFOq, /* in */ PCB pcb) {
         new_node->next = NULL;
 
         if (FIFOq->last_node != NULL) {
-            FIFOq->last_node->next = new_node;
-            FIFOq->last_node = new_node;
+			FIFOq->last_node->next = new_node;
+			FIFOq->last_node = FIFOq->last_node->next;
+            FIFOq->last_node->next = NULL;
         } else {
             FIFOq->first_node = new_node;
             FIFOq->last_node = new_node;

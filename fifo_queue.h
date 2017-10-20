@@ -22,7 +22,7 @@ typedef Node_s * ReadyQueueNode;
 typedef struct fifo_queue {
     ReadyQueueNode first_node;
     ReadyQueueNode last_node;
-
+	int quantum_size;
     unsigned int size;
 } FIFOq_s;
 
@@ -50,6 +50,8 @@ void q_destroy(/* in-out */ ReadyQueue FIFOq);
  * Return: 1 if empty, 0 otherwise.
  */
 char q_is_empty(/* in */ ReadyQueue FIFOq);
+
+void setQuantumSize (ReadyQueue queue, int quantumSize);
 
 /*
  * Attempts to enqueue the provided pcb.

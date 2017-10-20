@@ -24,6 +24,7 @@ PCB privileged[4];
 int privilege_counter = 0;
 int ran_term_num = 0;
 int terminated = 0;
+int currQuantumSize;
 
 /*
 	This function is our main loop. It creates a Scheduler object and follows the
@@ -42,10 +43,14 @@ void timer () {
 			break;
 		}
 		printf("Iteration: %d\r\n", iterationCount);
+		if (!(iterationCount % RESET_COUNT)) {
+			printf("\r\nRESETTING MLFQ\r\n");
+			resetMLFQ(thisScheduler);
+		}
 		totalProcesses += makePCBList(thisScheduler);		
 		
 		if (totalProcesses > 1) {
-			pc = runProcess(pc, thisScheduler->running->priority);
+			pc = runProcess(pc, currQuantumSize);
 			sysstack = pc;
 			pseudoISR(thisScheduler);
 			pc = thisScheduler->running->context->pc;
@@ -106,11 +111,10 @@ int makePCBList (Scheduler theScheduler) {
 	Creates a random number between 3000 and 4000 and adds it to the current PC.
 	It then returns that new PC value.
 */
-unsigned int runProcess (unsigned int pc, int priority) {
+unsigned int runProcess (unsigned int pc, int quantumSize) {
 	//(priority * PRIORITY_JUMP_EXTRA is the difference in time slice length between
 	//priority levels.
-	unsigned int jump = rand() % MAX_PC_JUMP + (priority * PRIORITY_JUMP_EXTRA);
-	if (jump < MIN_PC_JUMP) jump += ((MIN_PC_JUMP - jump) + (rand() % PC_JUMP_LIMIT));
+	unsigned int jump = rand() % quantumSize;
 	pc += jump;
 	return pc;
 }
@@ -148,7 +152,7 @@ void pseudoISR (Scheduler theScheduler) {
 	the current list of "privileged PCBs" that will not be terminated.
 */
 void printSchedulerState (Scheduler theScheduler) {
-	printf("MLFQ state at iteration end\n");
+	printf("MLFQ state at iteration end\r\n");
 	toStringPriorityQueue(theScheduler->ready);
 
 	/*if (theScheduler->running && theScheduler->interrupted) {
@@ -158,19 +162,50 @@ void printSchedulerState (Scheduler theScheduler) {
 	printf("\r\n");
 	
 	if (pq_peek(theScheduler->ready)) {
-		printf("Next highest priority PCB ");
-		toStringPCB(pq_peek(theScheduler->ready), 0);
-		printf("\r\n");
 		printf("Going to be running next: ");
 		toStringPCB(theScheduler->running, 0);
+		printf("\r\n");
+		printf("Next highest priority PCB ");
+		toStringPCB(pq_peek(theScheduler->ready), 0);
 		printf("\r\n\r\n\r\n");
 	} else {
-		printf("Next highest priority PCB contents: The MLFQ is empty!\r\n\r\n\r\n");
+		printf("Going to be running next: ");
+		toStringPCB(theScheduler->running, 0);
+		printf("Next highest priority PCB contents: The MLFQ is empty!\r\n");
+		printf("\r\n\r\n\r\n");
 	}
-	
-	
 }
 
+
+void resetMLFQ (Scheduler theScheduler) {
+	for (int i = 1; i < NUM_PRIORITIES; i++) {
+		ReadyQueue curr = theScheduler->ready->queues[i];
+		if (!q_is_empty(curr)) {
+			if (!q_is_empty(theScheduler->ready->queues[0])) {
+				theScheduler->ready->queues[0]->last_node->next = curr->first_node;
+				theScheduler->ready->queues[0]->last_node = curr->last_node;
+				theScheduler->ready->queues[0]->size += curr->size;
+			} else {
+				theScheduler->ready->queues[0]->first_node = curr->first_node;
+				theScheduler->ready->queues[0]->last_node = curr->last_node;
+				theScheduler->ready->queues[0]->size = curr->size;
+			}
+			resetReadyQueue(curr);
+		}
+	}
+}
+
+
+void resetReadyQueue (ReadyQueue queue) {
+	ReadyQueueNode ptr = queue->first_node;
+	while (ptr) {
+		ptr->pcb->priority = 0;
+		ptr = ptr->next;
+	}
+	queue->first_node = NULL;
+	queue->last_node = NULL;
+	queue->size = 0;
+}
 
 /*
 	If the interrupt that occurs was a Timer interrupt, it will simply set the 
@@ -182,6 +217,8 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 		theScheduler->interrupted->state = STATE_READY;
 		if (theScheduler->interrupted->priority < (NUM_PRIORITIES - 1)) {
 			theScheduler->interrupted->priority++;
+		} else {
+			theScheduler->interrupted->priority = 0;
 		}
 		pq_enqueue(theScheduler->ready, theScheduler->interrupted);
 		/*printf("MLFQ After first loop through\n");
@@ -214,6 +251,7 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 	running state of the Scheduler.
 */
 void dispatcher (Scheduler theScheduler) {
+	currQuantumSize = getNextQuantumSize(theScheduler->ready);
 	theScheduler->running = pq_dequeue(theScheduler->ready);
 	theScheduler->running->state = STATE_RUNNING;
 	/*char *toRun = toStringPCB(theScheduler->running, 0);
@@ -285,5 +323,6 @@ void main () {
 	srand((unsigned) time(&t));
 	sysstack = 0;
 	switchCalls = 0;
+	currQuantumSize = 0;
 	timer();
 }

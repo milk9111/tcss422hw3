@@ -17,7 +17,7 @@ int global_largest_PID = 0;
  */
 void initialize_data(/* in-out */ PCB pcb) {
   pcb->pid = 0;
-  PCB_assign_priority(pcb, (rand() % NUM_PRIORITIES));
+  PCB_assign_priority(pcb, 0);
   pcb->size = 0;
   pcb->channel_no = 0;
   pcb->state = 0;
@@ -140,9 +140,10 @@ void toStringPCB(PCB thisPCB, int showCpu) {
 	}
 	
 	printf("priority: %d, ", thisPCB->priority);
-	printf("mem: 0x%04X, ", thisPCB->mem);
+	printf("PC: 0x%04X, ", thisPCB->context->pc);
 	
 	if (showCpu) {
+		printf("mem: 0x%04X, ", thisPCB->mem);
 		printf("parent: %d, ", thisPCB->parent);
 		printf("size: %d, ", thisPCB->size);
 		printf("channel_no: %d ", thisPCB->channel_no);
@@ -153,7 +154,6 @@ void toStringPCB(PCB thisPCB, int showCpu) {
 
 void toStringCPUContext(CPU_context_p context) {
 	printf(" CPU context values: ");
-	printf("pc:  %d, ", context->pc);
 	printf("ir:  %d, ", context->ir);
 	printf("psr: %d, ", context->psr);
 	printf("r0:  %d, ", context->r0);
