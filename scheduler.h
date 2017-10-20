@@ -75,4 +75,8 @@ Scheduler schedulerConstructor ();
 
 void schedulerDeconstructor (Scheduler);
 
+int isPrivileged(PCB pcb);
+
+void terminate(Scheduler theScheduler);
+
 #endif
