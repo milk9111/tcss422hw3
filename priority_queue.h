@@ -39,6 +39,7 @@ void pq_destroy(PriorityQueue PQ);
  *            pcb: the PCB to enqueue.
  */
 void pq_enqueue(PriorityQueue PQ, PCB pcb);
+
 /*
  * Dequeues a PCB from the provided priority queue.
  *
@@ -46,6 +47,14 @@ void pq_enqueue(PriorityQueue PQ, PCB pcb);
  * Return: The highest priority proccess in the queue, NULL if none exists.
  */
 PCB pq_dequeue(PriorityQueue PQ);
+
+/*
+ * Peeks at the top value from the provided priority queue.
+ *
+ * Arguments: PQ: The Priority Queue to peek at.
+ * Return: The highest priority proccess in the queue, NULL if none exists.
+ */
+ PCB pq_peek(PriorityQueue PQ);
 
 /*
  * Checks if the provided priority queue is empty.
@@ -61,6 +70,6 @@ char pq_is_empty(PriorityQueue PQ);
  * Arguments: PQ: the Priority Queue to create a string representation of.
  * Return: A string representation of the provided Priority Queue, or NULL on failure.
  */
-char * toStringPriorityQueue(PriorityQueue PQ);
+char * toStringPriorityQueue(PriorityQueue PQ, int display_back);
 
 #endif
