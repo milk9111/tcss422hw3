@@ -114,7 +114,11 @@ int makePCBList (Scheduler theScheduler) {
 unsigned int runProcess (unsigned int pc, int quantumSize) {
 	//(priority * PRIORITY_JUMP_EXTRA is the difference in time slice length between
 	//priority levels.
-	unsigned int jump = rand() % quantumSize;
+	unsigned int jump;
+	if (quantumSize != 0) {
+		jump = rand() % quantumSize;
+	}
+	
 	pc += jump;
 	return pc;
 }
