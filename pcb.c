@@ -117,7 +117,9 @@ void PCB_assign_priority(/* in */ PCB the_pcb, /* in */ unsigned int the_priorit
  */
 void toStringPCB(PCB thisPCB, int showCpu) {
 	printf("contents: ");
+	
 	printf("PID: %d, ", thisPCB->pid);
+
 	switch(thisPCB->state) {
 		case STATE_NEW:
 			printf("state: new, ");

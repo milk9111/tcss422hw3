@@ -52,6 +52,7 @@ void timer () {
 		if (totalProcesses > 1) {
 			pc = runProcess(pc, currQuantumSize);
 			sysstack = pc;
+			terminate(thisScheduler); 
 			pseudoISR(thisScheduler);
 			pc = thisScheduler->running->context->pc;
 		}
@@ -77,10 +78,21 @@ void timer () {
 int makePCBList (Scheduler theScheduler) {
 	int newPCBCount = rand() % MAX_PCB_IN_ROUND;
 	//int newPCBCount = 1;
+	
+	int lottery = rand() % 5;
 	for (int i = 0; i < newPCBCount; i++) {
 		PCB newPCB = PCB_create();
 		newPCB->state = STATE_NEW;
 		q_enqueue(theScheduler->created, newPCB);
+		
+		// creates privileged pcb
+		if (privilege_counter < 4) {
+			printf("Privileged: ");
+			privileged[privilege_counter] = newPCB;
+		
+			
+			privilege_counter++;
+		}
 	}
 	printf("Making New PCBs: \r\n");
 	if (newPCBCount) {
@@ -114,7 +126,11 @@ int makePCBList (Scheduler theScheduler) {
 unsigned int runProcess (unsigned int pc, int quantumSize) {
 	//(priority * PRIORITY_JUMP_EXTRA is the difference in time slice length between
 	//priority levels.
-	unsigned int jump = rand() % quantumSize;
+	unsigned int jump;
+	if (quantumSize != 0) {
+		jump = rand() % quantumSize;
+	}
+	
 	pc += jump;
 	return pc;
 }
@@ -122,10 +138,18 @@ unsigned int runProcess (unsigned int pc, int quantumSize) {
 void terminate(Scheduler theScheduler) {
 	ran_term_num = rand() % RANDOM_VALUE;
 	
-	if (theScheduler->running != NULL && ran_term_num <= MAX_VALUE_PRIVILEGED
-	&& isPrivileged(theScheduler->running) == 0) {
+	printf("RAN TERM NUM: %d\n", ran_term_num);
+	
+	
+	if (theScheduler->running != NULL && ran_term_num <= MAX_VALUE_PRIVILEGED && isPrivileged(theScheduler->running) == 0) {
 		theScheduler->running->state = STATE_HALT;
+		printf("TERMINATING PCB: ");
+				
+		toStringPCB(theScheduler->running, 0);
+		
+		
 	}
+	
 }
 
 
@@ -135,9 +159,11 @@ void terminate(Scheduler theScheduler) {
 	PCB to interrupted, saving the PC to the SysStack and calling the scheduler.
 */
 void pseudoISR (Scheduler theScheduler) {
-	theScheduler->running->state = STATE_INT;
-	theScheduler->interrupted = theScheduler->running;
-	theScheduler->running->context->pc = sysstack;
+	if (theScheduler->running->state != STATE_HALT) {
+		theScheduler->running->state = STATE_INT;
+		theScheduler->interrupted = theScheduler->running;
+		theScheduler->running->context->pc = sysstack;
+	}
 	/*char *toInt = toStringPCB(theScheduler->interrupted, 0);
 	printf("New Interrupted PCB %s\r\n", toInt);
 	free(toInt);*/
@@ -170,7 +196,9 @@ void printSchedulerState (Scheduler theScheduler) {
 		printf("\r\n\r\n\r\n");
 	} else {
 		printf("Going to be running next: ");
-		toStringPCB(theScheduler->running, 0);
+		// this toString seems to be causing the seg fault
+		// since there's no PCB left to run?
+		// toStringPCB(theScheduler->running, 0);
 		printf("Next highest priority PCB contents: The MLFQ is empty!\r\n");
 		printf("\r\n\r\n\r\n");
 	}
@@ -219,7 +247,7 @@ void resetReadyQueue (ReadyQueue queue) {
 	calls the dispatcher to get the next PCB in the queue.
 */
 void scheduling (int isTimer, Scheduler theScheduler) {
-	if (isTimer) {
+	if (isTimer && theScheduler->running->state != STATE_HALT) {
 		theScheduler->interrupted->state = STATE_READY;
 		if (theScheduler->interrupted->priority < (NUM_PRIORITIES - 1)) {
 			theScheduler->interrupted->priority++;
@@ -240,15 +268,18 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 		
 		terminated++;
 	}
+	
+	theScheduler->running = pq_peek(theScheduler->ready);
 
 	
+	dispatcher(theScheduler);
+	
+		
 	if (terminated >= TOTAL_TERMINATED) {
 		while(!q_is_empty(theScheduler->killed)) {
 			PCB_destroy(q_dequeue(theScheduler->killed));
 		}
 	}
-	
-	dispatcher(theScheduler);
 }
 
 
@@ -257,12 +288,11 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 	running state of the Scheduler.
 */
 void dispatcher (Scheduler theScheduler) {
-	currQuantumSize = getNextQuantumSize(theScheduler->ready);
-	theScheduler->running = pq_dequeue(theScheduler->ready);
-	theScheduler->running->state = STATE_RUNNING;
-	/*char *toRun = toStringPCB(theScheduler->running, 0);
-	printf("New Running PCB %s\r\n", toRun);
-	free(toRun);*/
+	if (pq_peek(theScheduler->ready)->state != STATE_HALT) {
+		currQuantumSize = getNextQuantumSize(theScheduler->ready);
+		theScheduler->running = pq_dequeue(theScheduler->ready);
+		theScheduler->running->state = STATE_RUNNING;
+	}
 }
 
 
@@ -318,6 +348,11 @@ int isPrivileged(PCB pcb) {
 			}	
 		}
 	}
+	// printf("privileged: ");
+	// for (int j = 0; j < 4; j++) {
+		// printf("PRIVILEGED PID: %d ", privileged[j]);
+			
+	// }
 	
 	return 0;	
 }
