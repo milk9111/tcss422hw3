@@ -188,17 +188,17 @@ void printSchedulerState (Scheduler theScheduler) {
 	printf("\r\n");
 	
 	if (pq_peek(theScheduler->ready)) {
-		printf("Going to be running next: ");
+		printf("Going to be running next ");
 		toStringPCB(theScheduler->running, 0);
 		printf("\r\n");
 		printf("Next highest priority PCB ");
 		toStringPCB(pq_peek(theScheduler->ready), 0);
 		printf("\r\n\r\n\r\n");
 	} else {
-		printf("Going to be running next: ");
-		// this toString seems to be causing the seg fault
-		// since there's no PCB left to run?
-		// toStringPCB(theScheduler->running, 0);
+		printf("Going to be running next ");
+		if (theScheduler->running) {
+			toStringPCB(theScheduler->running, 0);
+		}
 		printf("Next highest priority PCB contents: The MLFQ is empty!\r\n");
 		printf("\r\n\r\n\r\n");
 	}
