@@ -177,6 +177,12 @@ void printSchedulerState (Scheduler theScheduler) {
 }
 
 
+/*
+	Used to move every value in the MLFQ back to the highest priority
+	ReadyQueue after a predetermined time. It does this by taking the first value
+	of each ReadyQueue (after the 0 *highest priority* queue) and setting it to
+	be the new last value of the 0 queue.
+*/
 void resetMLFQ (Scheduler theScheduler) {
 	for (int i = 1; i < NUM_PRIORITIES; i++) {
 		ReadyQueue curr = theScheduler->ready->queues[i];
