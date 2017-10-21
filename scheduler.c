@@ -16,6 +16,7 @@
 #define MAX_VALUE_PRIVILEGED 15
 #define RANDOM_VALUE 101
 #define TOTAL_TERMINATED 10
+#define MAX_PRIVILEGE 4
 
 unsigned int sysstack;
 int switchCalls;
@@ -79,16 +80,16 @@ int makePCBList (Scheduler theScheduler) {
 	int newPCBCount = rand() % MAX_PCB_IN_ROUND;
 	//int newPCBCount = 1;
 	
-	int lottery = rand() % 5;
+	int lottery = rand();
 	for (int i = 0; i < newPCBCount; i++) {
 		PCB newPCB = PCB_create();
 		newPCB->state = STATE_NEW;
 		q_enqueue(theScheduler->created, newPCB);
 		
 		// creates privileged pcb
-		if (privilege_counter < 4) {
-			printf("Privileged: ");
+		if (privilege_counter < 4 && lottery % 7 == 0) {
 			privileged[privilege_counter] = newPCB;
+			// printf("PRIVILEGE PID: %d\n", privileged[privilege_counter]->pid);
 		
 			
 			privilege_counter++;
@@ -138,14 +139,13 @@ unsigned int runProcess (unsigned int pc, int quantumSize) {
 void terminate(Scheduler theScheduler) {
 	ran_term_num = rand() % RANDOM_VALUE;
 	
-	printf("RAN TERM NUM: %d\n", ran_term_num);
-	
+	// printf("RAN TERM NUM: %d\n", ran_term_num);
 	
 	if (theScheduler->running != NULL && ran_term_num <= MAX_VALUE_PRIVILEGED && isPrivileged(theScheduler->running) == 0) {
 		theScheduler->running->state = STATE_HALT;
-		printf("TERMINATING PCB: ");
+		// printf("TERMINATING PCB: ");
 				
-		toStringPCB(theScheduler->running, 0);
+		// toStringPCB(theScheduler->running, 0);
 		
 		
 	}
@@ -187,6 +187,18 @@ void printSchedulerState (Scheduler theScheduler) {
 	}*/
 	printf("\r\n");
 	
+	int index = 0;
+	// PRIVILIGED PID
+	while(privileged[index] != NULL && index < MAX_PRIVILEGE) {
+		printf("PCB PID %d, PRIORITY %d, PC %d\n", 
+		privileged[index]->pid, privileged[index]->priority, 
+		privileged[index]->context->pc);
+		index++;
+	}
+	
+	printf("\r\n");
+	
+	
 	if (pq_peek(theScheduler->ready)) {
 		printf("Going to be running next: ");
 		toStringPCB(theScheduler->running, 0);
@@ -197,7 +209,6 @@ void printSchedulerState (Scheduler theScheduler) {
 	} else {
 		printf("Going to be running next: ");
 		// this toString seems to be causing the seg fault
-		// since there's no PCB left to run?
 		// toStringPCB(theScheduler->running, 0);
 		printf("Next highest priority PCB contents: The MLFQ is empty!\r\n");
 		printf("\r\n\r\n\r\n");
@@ -254,6 +265,14 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 		printf("%s\n", queue);
 		free(queue);*/
 		//exit(0);
+		
+		int index = isPrivileged(theScheduler->running);
+		
+		if (index != 0) {
+			privileged[index] = theScheduler->running;
+		}
+		
+		
 	}
 	
 	if (theScheduler->running->state == STATE_HALT) {
@@ -264,16 +283,18 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 	}
 	
 	theScheduler->running = pq_peek(theScheduler->ready);
-
 	
-	dispatcher(theScheduler);
-	
-		
 	if (terminated >= TOTAL_TERMINATED) {
 		while(!q_is_empty(theScheduler->killed)) {
 			PCB_destroy(q_dequeue(theScheduler->killed));
 		}
 	}
+
+	
+	dispatcher(theScheduler);
+	
+		
+
 }
 
 
@@ -338,15 +359,12 @@ int isPrivileged(PCB pcb) {
 	if (pcb != NULL) {
 		for (int i = 0; i < 4; i++) {
 			if (privileged[i] == pcb) {
-				return 1;
+				return i;
 			}	
 		}
 	}
-	// printf("privileged: ");
-	// for (int j = 0; j < 4; j++) {
-		// printf("PRIVILEGED PID: %d ", privileged[j]);
-			
-	// }
+	
+
 	
 	return 0;	
 }
