@@ -125,7 +125,7 @@ int makePCBList (Scheduler theScheduler) {
 	It then returns that new PC value.
 */
 unsigned int runProcess (unsigned int pc, int quantumSize) {
-	//(priority * PRIORITY_JUMP_EXTRA is the difference in time slice length between
+	//quantumSize is the difference in time slice length between
 	//priority levels.
 	unsigned int jump;
 	if (quantumSize != 0) {
@@ -136,18 +136,13 @@ unsigned int runProcess (unsigned int pc, int quantumSize) {
 	return pc;
 }
 
+
+
 void terminate(Scheduler theScheduler) {
 	ran_term_num = rand() % RANDOM_VALUE;
-	
-	// printf("RAN TERM NUM: %d\n", ran_term_num);
-	
+		
 	if (theScheduler->running != NULL && ran_term_num <= MAX_VALUE_PRIVILEGED && isPrivileged(theScheduler->running) == 0) {
 		theScheduler->running->state = STATE_HALT;
-		// printf("TERMINATING PCB: ");
-				
-		// toStringPCB(theScheduler->running, 0);
-		
-		
 	}
 	
 }
@@ -164,9 +159,6 @@ void pseudoISR (Scheduler theScheduler) {
 		theScheduler->interrupted = theScheduler->running;
 		theScheduler->running->context->pc = sysstack;
 	}
-	/*char *toInt = toStringPCB(theScheduler->interrupted, 0);
-	printf("New Interrupted PCB %s\r\n", toInt);
-	free(toInt);*/
 	scheduling(IS_TIMER, theScheduler);
 	pseudoIRET(theScheduler);
 }
@@ -180,11 +172,6 @@ void pseudoISR (Scheduler theScheduler) {
 void printSchedulerState (Scheduler theScheduler) {
 	printf("MLFQ state at iteration end\r\n");
 	toStringPriorityQueue(theScheduler->ready);
-
-	/*if (theScheduler->running && theScheduler->interrupted) {
-		toStringPCB(theScheduler->running, 0);
-		toStringPCB(theScheduler->interrupted, 0);
-	}*/
 	printf("\r\n");
 	
 	int index = 0;
@@ -266,19 +253,12 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 			theScheduler->interrupted->priority = 0;
 		}
 		pq_enqueue(theScheduler->ready, theScheduler->interrupted);
-		/*printf("MLFQ After first loop through\n");
-		char *queue = toStringPriorityQueue(theScheduler->ready, 0);
-		printf("%s\n", queue);
-		free(queue);*/
-		//exit(0);
 		
 		int index = isPrivileged(theScheduler->running);
 		
 		if (index != 0) {
 			privileged[index] = theScheduler->running;
 		}
-		
-		
 	}
 	
 	if (theScheduler->running->state == STATE_HALT) {
@@ -296,11 +276,7 @@ void scheduling (int isTimer, Scheduler theScheduler) {
 		}
 	}
 
-	
 	dispatcher(theScheduler);
-	
-		
-
 }
 
 
